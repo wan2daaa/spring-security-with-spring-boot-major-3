@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.0.6'
     id 'io.spring.dependency-management' version '1.1.0'
+//    SonarLint
+    id "org.sonarqube" version "3.5.0.2730"
 }
 
 group = 'wane.study'
@@ -16,6 +18,14 @@ configurations {
 
 repositories {
     mavenCentral()
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "wan2daaa_spring-security-with-spring-boot-major-3"
+        property "sonar.organization", "wan2daaa"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
 }
 
 dependencies {
