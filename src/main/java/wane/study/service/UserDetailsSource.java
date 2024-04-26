@@ -1,4 +1,4 @@
-package wane.custom.security;
+package wane.study.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
