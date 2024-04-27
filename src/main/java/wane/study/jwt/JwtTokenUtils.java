@@ -25,27 +25,28 @@ public class JwtTokenUtils {
 	}
 
 	public Boolean isTokenValid(String token, Long userId) {
-		Long id = Long.valueOf(getId(token));
+		Long id = Long.valueOf(getUserId(token));
 		return id.equals(userId);
 	}
 
 
-	public Jws<Claims> parseJwtToken(String token) throws ExpiredJwtException {
+	public Jws<Claims> parseJwtToken(String token) {
 		return Jwts.parser()
 				.verifyWith(secretKey)
 				.build()
 				.parseSignedClaims(token);
 	}
 
-	public String getId(String token) {
-		return parseJwtToken(token).getPayload().getSubject();
+	public String getUserId(String token) throws ExpiredJwtException{
+		return parseJwtToken(token).getPayload().get("userId").toString();
 	}
 
 
-	public String generateJwtToken(Long id, long expireTime) {
+	public String generateJwtToken(Long userId, long expireTime, String tokenName) {
 		return Jwts.builder()
 				.id(UUID.randomUUID().toString())
-				.subject(id.toString())
+				.subject(tokenName)
+				.claim("userId", userId)
 				.issuedAt(new Date(System.currentTimeMillis()))
 				.expiration(new Date(System.currentTimeMillis() + expireTime))
 				.signWith(secretKey)

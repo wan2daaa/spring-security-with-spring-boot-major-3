@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthorizeController {
 
-	@GetMapping("/authorize")
+	@GetMapping("/api/authorize")
 	public String authorize() {
 		return "authorize";
 	}

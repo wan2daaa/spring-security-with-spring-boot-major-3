@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import wane.study.repository.UserRepository;
 
 @RequiredArgsConstructor
-public class UserDetailsSource implements UserDetailsService {
+public class UserDetailService implements UserDetailsService {
 
 	private final UserRepository userRepository;
 
