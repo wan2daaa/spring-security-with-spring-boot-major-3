@@ -5,13 +5,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,7 +24,6 @@ import wane.study.security.UserAuthenticationProvider;
 import wane.study.service.UserDetailService;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
-import static wane.study.entity.UserRole.ROLE_USER;
 
 @EnableWebSecurity
 @Configuration
@@ -31,12 +31,13 @@ public class DefaultSecurityConfig {
 
 	@Profile({"default", "local"})
 	@Bean
-	public SecurityFilterChain testSecurityFilterChain(HttpSecurity http, JwtTokenUtils jwtTokenUtils, UserRepository userRepository) throws Exception {
+	public SecurityFilterChain testSecurityFilterChain(HttpSecurity http, JwtTokenUtils jwtTokenUtils, UserRepository userRepository, AuthenticationConfiguration config) throws Exception {
 		return http
-				.authenticationManager(authenticationManager(userRepository))
-				.authenticationProvider(customAuthenticationProvider(userRepository))
-				.authorizeHttpRequests(getHttpRequestsCustom())
+				.securityMatcher("/**")
+//				.authenticationProvider(customAuthenticationProvider(userRepository))
 				.addFilterAfter(new JwtAuthenticationFilter(antMatcher("/**"), authenticationManager(userRepository), jwtTokenUtils), CorsFilter.class)
+//					.addFilterBefore(new JwtAuthenticationFilter(antMatcher("/**"),authenticationManager(config), jwtTokenUtils), CorsFilter.class)
+				.authorizeHttpRequests(getHttpRequestsCustom())
 				//h2 console 접근 위해 추가
 				.csrf(AbstractHttpConfigurer::disable)
 				//
@@ -51,20 +52,20 @@ public class DefaultSecurityConfig {
 
 	@Profile("prod")
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenUtils jwtTokenUtils, UserRepository userRepository) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenUtils jwtTokenUtils, UserRepository userRepository, AuthenticationConfiguration config) throws Exception {
 		http.authorizeHttpRequests(getHttpRequestsCustom())
 				.addFilterAfter(new JwtAuthenticationFilter(antMatcher("/**"), authenticationManager(userRepository), jwtTokenUtils), CorsFilter.class);
+//				.addFilterAfter(new JwtAuthenticationFilter(antMatcher("/**"), authenticationManager(config), jwtTokenUtils), CorsFilter.class);
 		return http.build();
 	}
 
-
 	@Bean
 	public AuthenticationManager authenticationManager(UserRepository userRepository) {
-		return new ProviderManager(customAuthenticationProvider(userRepository));
+		return new ProviderManager(authenticationProvider(userRepository));
 	}
 
 	@Bean
-	public AuthenticationProvider customAuthenticationProvider(UserRepository userRepository) {
+	public UserAuthenticationProvider authenticationProvider(UserRepository userRepository) {
 		UserAuthenticationProvider provider = new UserAuthenticationProvider();
 		provider.setUserDetailsService(userDetailsService(userRepository));
 		return provider;
@@ -72,7 +73,7 @@ public class DefaultSecurityConfig {
 
 
 	@Bean
-	UserDetailService userDetailsService(UserRepository userRepository) {
+	UserDetailsService userDetailsService(UserRepository userRepository) {
 		return new UserDetailService(userRepository);
 	}
 
@@ -81,12 +82,12 @@ public class DefaultSecurityConfig {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
 
-
 	private Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry> getHttpRequestsCustom() {
 		return auth -> {
 			auth.requestMatchers(HttpMethod.POST, "/register").permitAll();
 			auth.requestMatchers(HttpMethod.POST, "/login").permitAll();
-			auth.requestMatchers(antMatcher("/api/authorize")).hasRole(ROLE_USER.getRoleName());
+			auth.requestMatchers(antMatcher("/api/authorize")).hasAuthority("ROLE_USER");
+			auth.requestMatchers(antMatcher("/api/admin")).hasRole("ADMIN");
 			auth.requestMatchers(antMatcher("/h2/**")).permitAll();
 			auth.anyRequest().denyAll();
 		};

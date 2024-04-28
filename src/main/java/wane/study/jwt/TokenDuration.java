@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum TokenDuration {
-//  ACCESS_TOKEN_DURATION(30 * 60 * 1000L, 30 * 60, "30분"),
-  ACCESS_TOKEN_DURATION(100L, 30 * 60, "30분"),
+  ACCESS_TOKEN_DURATION(30 * 60 * 1000L, 30 * 60, "30분"),
+//  ACCESS_TOKEN_DURATION(100L, 30 * 60, "30분"), //refreshToken 정상 동작하는지 확인용
   REFRESH_TOKEN_DURATION(14 * 24 * 60 * 60 * 1000L, 14 * 24 * 60 * 60, "2주"),
   ACCESS_TOKEN_DURATION_ADMIN(12 * 30 * 24 * 60 * 60 * 1000L, 12 * 30 * 24 * 60 * 60, "1년"),
   ;

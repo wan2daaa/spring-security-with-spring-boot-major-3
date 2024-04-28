@@ -17,8 +17,8 @@ import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
 
 @Slf4j
 public class UserAuthenticationProvider implements AuthenticationProvider, InitializingBean, MessageSourceAware {
@@ -33,8 +33,9 @@ public class UserAuthenticationProvider implements AuthenticationProvider, Initi
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		Object credentials =  authentication.getCredentials();
-
+		log.info("here");
 		if (credentials == null) {
+			log.info("here");
 			return new UserAuthenticationToken(null);
 		}
 
@@ -47,7 +48,9 @@ public class UserAuthenticationProvider implements AuthenticationProvider, Initi
 						"UserDetailsService returned null, which is an interface contract violation");
 			}
 
-			return new UserAuthenticationToken(findUser, credentials, findUser.getAuthorities());
+			UserAuthenticationToken authenticationToken = new UserAuthenticationToken(findUser, credentials, findUser.getAuthorities());
+			authenticationToken.setDetails(findUser);
+			return authentication;
 		} catch (UsernameNotFoundException e) {
 			this.logger.debug("Failed to find user userId='" + credentials + "'");
 			throw new BadCredentialsException(this.messages
@@ -63,8 +66,8 @@ public class UserAuthenticationProvider implements AuthenticationProvider, Initi
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.messages, "A message source must be set");
-		Assert.notNull(this.userDetailsService, "A UserDetailsService must be set");
+//		Assert.notNull(this.messages, "A message source must be set");
+//		Assert.notNull(this.userDetailsService, "A UserDetailsService must be set");
 	}
 
 	@Override

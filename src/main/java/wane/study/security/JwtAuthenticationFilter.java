@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
 
-		log.info("super.getAuthenticationManager() = {} ", super.getAuthenticationManager());
+//		log.info("super.getAuthenticationManager() = {} ", super.getAuthenticationManager());
 
 		String accessToken = "";
 		String refreshToken = "";
@@ -45,6 +45,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 		Cookie[] cookies = request.getCookies();
 
 		if (cookies == null) {
+			log.info("cookie is null");
 			return getAuthenticationManager().authenticate(new UserAuthenticationToken(null));
 		}
 		for (Cookie cookie : cookies) {
@@ -66,6 +67,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 				String userId = jwtTokenUtils.getUserId(accessToken);
 
 				if (StringUtils.hasText(userId)) {
+
 					return getAuthenticationManager().authenticate(new UserAuthenticationToken(userId));
 				}
 			} catch (ExpiredJwtException e) {
@@ -107,10 +109,14 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+		if (authResult == null) {
+			chain.doFilter(request, response);
+		}
 		SecurityContext securityContext = SecurityContextHolder.getContext();
+
 		securityContext.setAuthentication(authResult);
 
-		chain.doFilter(request, response);
+
 	}
 
 }
